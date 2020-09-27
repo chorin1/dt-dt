@@ -1,9 +1,9 @@
 (ns dtdt.core
-  (:import (java.util TimerTask Timer)))
+  (:import (java.util TimerTask Timer Date)))
 
 (defn- create-task
-  "Implements abstract TimerTask class"
-  ([f] create-task f nil)
+  "Internal function, extends abstract TimerTask class"
+  ([f] (create-task f nil))
   ([f ex-handler] (let [f-ex (if ex-handler
                                (fn [] (try (f) (catch Exception e (ex-handler e))))
                                f)]
@@ -17,36 +17,40 @@
   []
   (Timer.))
 
-(def default-ex-hadnler (fn [^Exception e]
-                          (println (str "Caught exception in dtdt: " (.getMessage e)))))
+(def default-ex-handler (fn [^Exception e]
+                          (println (str "Caught exception in dt-dt: " (.getMessage e)))))
 
 (defn every
-  "will create and run a new task that will execute every-ms milliseconds starting from initial-delay.
-  returns the created task (can later be canceled)"
-  [every-ms f timer & {:keys [initial-delay ex-handler]
-                       :or   {initial-delay 0
-                              ex-handler    default-ex-hadnler}}]
+  "Create a new task that will execute f every `every-ms` milliseconds.
+   first execution will happen immediately unless `initial-delay` or `initial-date` are provided.
+  Returns the created task"
+  [every-ms f timer & [{:keys [initial-delay initial-date ex-handler]
+                        :or   {initial-delay 0
+                               initial-date  nil
+                               ex-handler    default-ex-handler}}]]
 
   (let [task (create-task f ex-handler)]
-    (. ^Timer timer scheduleAtFixedRate ^TimerTask task ^long initial-delay ^long every-ms)
+    (if initial-date
+      (. ^Timer timer scheduleAtFixedRate ^TimerTask task ^Date initial-date ^long every-ms)
+      (. ^Timer timer scheduleAtFixedRate ^TimerTask task ^long initial-delay ^long every-ms))
     task))
 
 (defn in
-  [delay-ms f timer {:keys [ex-handler]
-                     :or   {ex-handler default-ex-hadnler}}]
+  "execute f once in `delay-ms` milliseconds"
+  [delay-ms f timer & [{:keys [ex-handler]
+                        :or   {ex-handler default-ex-handler}}]]
   (let [task (create-task f ex-handler)]
     (. ^Timer timer schedule ^TimerTask task ^long delay-ms)
     task))
 
 (defn last-execution-time
-  "returns last execution time of the task in epoch time"
+  "Returns last execution time of a task in epoch time"
   [^TimerTask task]
   (. task scheduledExecutionTime))
 
 (defn cancel
-  "calling cancel with a timertask will cancel the task,
-  calling it with a timer will cancel all timer's tasks"
+  "Cancels a task or a timer"
   [t]
-  (cond
-    (instance? TimerTask t) (. ^TimerTask t cancel)
-    (instance? Timer t) (. ^Timer t cancel)))
+  (condp instance? t
+    TimerTask (. ^TimerTask t cancel)
+    Timer (. ^Timer t cancel)))
