@@ -1,5 +1,5 @@
 # Do this Do that
-A simple, yet effective Clojure periodic task dispatcher.
+A lightweight & effective Clojure periodic task dispatcher.
 <br><br>
 ## Why?
 Inspired by the simplicity of [at-at](https://github.com/overtone/at-at) this library was created to address some of its issues:
