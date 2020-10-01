@@ -1,5 +1,5 @@
 # Do this Do that
-A simple, yet effective Clojure periodic task dispatcher.
+A lightweight & effective Clojure periodic task dispatcher.
 <br><br>
 ## Why?
 Inspired by the simplicity of [at-at](https://github.com/overtone/at-at) this library was created to address some of its issues:
@@ -16,7 +16,7 @@ Some of the other available Clojure libraries didn't quite fit, they either:
 ## Setup
 Add the following to `project.clj` dependencies:
 ```
-[dtdt "0.1.0"]
+[dtdt "0.2.0"]
 ```
 
 ## Usage
@@ -26,7 +26,7 @@ Create a timer - each timer contains a single thread to run tasks.
 ```
 Next, assign a task to the timer. Task will start running periodically right away.
 ```clojure
-(def some-task (every 5000 #(println "Hello there..") t))
+(def some-task (every t 5000 #(println "Hello there..")))
 => #'dtdt.core/some-task
 Hello there..
 Hello there..
@@ -45,40 +45,43 @@ Hello there..
 Notes:
 * Timers can also be cancelled using the same `cancel` function.
 * Canceling a timer will cancel all of its running tasks.
-* Optionally pass `:initial-delay` or `:initial-date` as arguments to `every`:
+
+#### Initial delay
+By default, new tasks will execute immediately. Optionally, you may pass an initial delay (or even a Date).
 ```clojure
 ; will execute f after 5 seconds and then every 10 milliseconds
-(every 10 f t {:initial-delay 5000})
+(every t 10 f 5000)
 ```
 
-
-### More 
-Execute (once) a task in X milliseconds from now.
-```clojure
-(in 100 #(println "you will see me only once!") t)
-```
-
-
+#### last execution time
 Return the last execution time of a task in epoch-time.
 ```clojure
 (last-execution-time task)
 => 1601223864378
 ```
-### Exceptions
-By default when an exception from a task is thrown it will be printed.
+
+### One-off
+Execute a task in X milliseconds from now.
 ```clojure
-(def bad-task (every 5000 #(throw (Exception. "Something is broken")) t))
-Caught exception in dtdt: Something is broken
-=> #'dtdt.core/bad-task1
-Caught exception in dtdt: Something is broken
-Caught exception in dtdt: Something is broken
+(in t 100 #(println "you will see me only once!"))
 ```
 
-Optionally, pass an exception handler to alter the default behaviour
+
+### Exceptions
+When an exception from a task is thrown it will be printed.
+```clojure
+(def bad-task (every t 5000 #(throw (Exception. "Something is broken"))))
+caught exception in dtdt: Something is broken
+=> #'dtdt.core/bad-task1
+caught exception in dtdt: Something is broken
+caught exception in dtdt: Something is broken
+```
+
+Optionally, pass an exception handler to alter the default behaviour.
 ```clojure
 (let [task #(throw (Exception. "Something broke again"))
       ex-handler (fn [e] (log/error (.getMessage e)))] 
-  (every 2000 task t {:ex-handler ex-handler}))
+  (every t 2000 task 0 ex-handler))
 ```
 
 <br><br>
@@ -86,4 +89,4 @@ Optionally, pass an exception handler to alter the default behaviour
 ## License
 
 Copyright © 2020<br>
-Distributed under the  Eclipse Public License
+Distributed under the Eclipse Public License

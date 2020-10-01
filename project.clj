@@ -1,4 +1,4 @@
-(defproject dtdt "0.1.0"
+(defproject dtdt "0.2.0"
   :description "Do this Do that - A clojure function scheduler"
   :url "https://github.com/chorin1/dt-dt"
   :license {:name "Eclipse Public License"
